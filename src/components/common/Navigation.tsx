@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import type { AppView, PersonProfile, AuthUser } from "../../types";
 import { StillHereLogo } from "./StillHereLogo";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface NavigationProps {
   currentView: AppView;
@@ -119,6 +120,9 @@ export const Navigation: React.FC<NavigationProps> = ({
 
           {/* Right Action Buttons & User Menu */}
           <div className="hidden sm:flex items-center gap-2.5">
+            {/* Theme Toggle (Light / Dark) */}
+            <ThemeToggle />
+
             <button
               type="button"
               onClick={onCreateProfile}
@@ -192,8 +196,10 @@ export const Navigation: React.FC<NavigationProps> = ({
             )}
           </div>
 
-          {/* Mobile Hamburger Toggle */}
+          {/* Mobile Hamburger Toggle & Actions */}
           <div className="flex sm:hidden items-center gap-2">
+            <ThemeToggle />
+
             <button
               type="button"
               onClick={onOpenAddMemory}
@@ -261,6 +267,8 @@ export const Navigation: React.FC<NavigationProps> = ({
           </div>
 
           <div className="pt-2 border-t border-parchment-200 flex flex-col gap-2">
+            <ThemeToggle variant="button" className="w-full justify-center" />
+
             <button
               onClick={() => {
                 onCreateProfile();

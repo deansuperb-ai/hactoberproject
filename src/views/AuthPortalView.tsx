@@ -13,6 +13,7 @@ import {
   KeyRound,
 } from "lucide-react";
 import { StillHereLogo } from "../components/common/StillHereLogo";
+import { ThemeToggle } from "../components/common/ThemeToggle";
 import {
   signInWithEmail,
   signUpWithEmail,
@@ -90,6 +91,10 @@ export const AuthPortalView: React.FC<AuthPortalViewProps> = ({
 
   return (
     <div className="min-h-screen bg-parchment-100 flex flex-col justify-center relative overflow-hidden">
+      {/* Top right Theme Toggle */}
+      <div className="absolute top-4 right-4 z-20">
+        <ThemeToggle />
+      </div>
       {/* Decorative Warm Ambient Halos */}
       <div className="absolute top-0 right-1/4 w-96 h-96 bg-terracotta/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-10 w-80 h-80 bg-rose-200/20 rounded-full blur-3xl pointer-events-none" />

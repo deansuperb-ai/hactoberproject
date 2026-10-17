@@ -10,6 +10,15 @@
     --color-rose: #B8736B;
     --color-olive: #58674E;
     --color-brass: #C49649;
+    color-scheme: light;
+  }
+
+  html.dark,
+  [data-theme="dark"] {
+    --color-parchment: #191412;
+    --color-espresso: #FAF6F0;
+    --color-terracotta: #D47155;
+    color-scheme: dark;
   }
 
   html {
@@ -18,6 +27,18 @@
     -moz-osx-font-smoothing: grayscale;
     background-color: #FAF6F0;
     color: #231C18;
+    transition: background-color 200ms ease, color 200ms ease;
+  }
+
+  html.dark {
+    background-color: #191412;
+    color: #FAF6F0;
+  }
+
+  body {
+    background-color: inherit;
+    color: inherit;
+    min-height: 100vh;
   }
 
   /* Custom subtle warm scrollbar */
@@ -37,14 +58,175 @@
     background: #BFAEA0;
   }
 
+  html.dark ::-webkit-scrollbar-track {
+    background: #191412;
+  }
+  html.dark ::-webkit-scrollbar-thumb {
+    background: #3D322B;
+    border: 2px solid #191412;
+  }
+  html.dark ::-webkit-scrollbar-thumb:hover {
+    background: #52433A;
+  }
+
   /* Accessible focus indicators */
   :focus-visible {
     outline: 2px solid #C25E42;
     outline-offset: 3px;
     border-radius: 4px;
   }
+
+  html.dark :focus-visible {
+    outline: 2px solid #E07A5F;
+    outline-offset: 3px;
+  }
 }
 
+/* ==================================================================== */
+/* COMPLETE DARK MODE THEME MAPPINGS                                    */
+/* Warm, comfortable, cinematic espresso palette (never pitch black)     */
+/* ==================================================================== */
+
+html.dark body {
+  background-color: #191412 !important;
+  color: #FAF6F0 !important;
+}
+
+/* Surfaces */
+html.dark .bg-parchment-100,
+html.dark .bg-\[\#FBF9F5\],
+html.dark .bg-\[\#FAF6F0\],
+html.dark .bg-parchment-150 {
+  background-color: #191412 !important;
+}
+
+html.dark .bg-parchment-50,
+html.dark .bg-white,
+html.dark .bg-\[\#FAF7F2\],
+html.dark .bg-\[\#FDFCF9\],
+html.dark .bg-\[\#FDFBF7\],
+html.dark .bg-\[\#F7F4EF\],
+html.dark .bg-\[\#FAF5EE\] {
+  background-color: #241D19 !important;
+}
+
+html.dark .bg-\[\#FAF7F2\]\/95 {
+  background-color: rgba(36, 29, 25, 0.95) !important;
+}
+
+html.dark .bg-parchment-100\/90,
+html.dark .bg-parchment-100\/80,
+html.dark .bg-parchment-100\/70 {
+  background-color: rgba(36, 29, 25, 0.85) !important;
+}
+
+html.dark .bg-parchment-200,
+html.dark .bg-parchment-200\/80,
+html.dark .bg-parchment-200\/70 {
+  background-color: #2F2620 !important;
+}
+
+html.dark .bg-parchment-300 {
+  background-color: #3D322B !important;
+}
+
+html.dark .bg-espresso-900 {
+  background-color: #382C25 !important;
+  color: #FAF6F0 !important;
+}
+
+html.dark .bg-espresso-800 {
+  background-color: #42352D !important;
+  color: #FAF6F0 !important;
+}
+
+html.dark .hover\:bg-espresso-950:hover,
+html.dark .hover\:bg-espresso-900:hover {
+  background-color: #4A3B32 !important;
+}
+
+/* Header & Nav */
+html.dark header {
+  background-color: rgba(25, 20, 18, 0.94) !important;
+  border-bottom-color: #382C25 !important;
+}
+
+/* Typography in Dark Mode */
+html.dark .text-espresso-950,
+html.dark .text-espresso-900 {
+  color: #FAF6F0 !important;
+}
+
+html.dark .text-espresso-800,
+html.dark .text-espresso-700 {
+  color: #EDE4D8 !important;
+}
+
+html.dark .text-espresso-600,
+html.dark .text-espresso-500 {
+  color: #C2B3A3 !important;
+}
+
+html.dark .text-espresso-400 {
+  color: #9D8E7E !important;
+}
+
+/* Borders in Dark Mode */
+html.dark .border-parchment-200,
+html.dark .border-parchment-300,
+html.dark .border-parchment-200\/80,
+html.dark .border-parchment-700\/40,
+html.dark .border-\[\#E6DDD2\],
+html.dark .border-\[\#E2D8C7\],
+html.dark .border-\[\#E8DFC8\] {
+  border-color: #382C25 !important;
+}
+
+html.dark .border-parchment-400 {
+  border-color: #4A3B32 !important;
+}
+
+/* Inputs, Textareas, Selects in Dark Mode */
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background-color: #1E1714 !important;
+  color: #FAF6F0 !important;
+  border-color: #382C25 !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #8E7E70 !important;
+}
+
+/* Terracotta Accents in Dark Mode (slightly warmer for accessibility) */
+html.dark .text-terracotta {
+  color: #E07A5F !important;
+}
+
+html.dark .text-terracotta-dark {
+  color: #E8927C !important;
+}
+
+html.dark .bg-terracotta-light,
+html.dark .bg-terracotta-light\/60,
+html.dark .bg-terracotta-light\/40,
+html.dark .bg-terracotta-light\/30,
+html.dark .bg-terracotta-light\/20,
+html.dark .bg-terracotta-light\/10 {
+  background-color: rgba(212, 113, 85, 0.18) !important;
+  color: #E8927C !important;
+}
+
+/* Dialog & Modal Backdrops in Dark Mode */
+html.dark [role="dialog"] .bg-parchment-50,
+html.dark [role="dialog"] .bg-white {
+  background-color: #241D19 !important;
+  border-color: #382C25 !important;
+}
+
+/* Card hover and active states */
 @layer utilities {
   .paper-texture {
     background-color: #FAF6F0;
@@ -52,12 +234,25 @@
     background-size: 24px 24px;
   }
 
+  html.dark .paper-texture {
+    background-color: #191412;
+    background-image: radial-gradient(rgba(250, 246, 240, 0.04) 1px, transparent 0);
+  }
+
   .warm-border {
     border-color: #E8DFD3;
   }
 
+  html.dark .warm-border {
+    border-color: #382C25;
+  }
+
   .warm-border-subtle {
     border-color: #F0E8DD;
+  }
+
+  html.dark .warm-border-subtle {
+    border-color: #2D231E;
   }
 
   .card-album {
@@ -72,8 +267,22 @@
     transform: translateY(-2px);
   }
 
+  html.dark .card-album {
+    background: #241D19;
+    border-color: #382C25;
+  }
+
+  html.dark .card-album:hover {
+    border-color: #4A3B32;
+    box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.4), 0 3px 8px -2px rgba(0, 0, 0, 0.2);
+  }
+
   .letter-emboss {
     text-shadow: 0 1px 1px rgba(255, 255, 255, 0.7);
+  }
+
+  html.dark .letter-emboss {
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
   }
 }
 

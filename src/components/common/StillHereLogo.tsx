@@ -1,11 +1,12 @@
 import React from "react";
+import { useTheme } from "../../context/ThemeContext";
 
 interface StillHereLogoProps {
   variant?: "full" | "compact" | "icon" | "mark";
   size?: "sm" | "md" | "lg" | "xl";
   showTagline?: boolean;
   className?: string;
-  theme?: "light" | "dark" | "terracotta";
+  theme?: "light" | "dark" | "terracotta" | "auto";
 }
 
 export const StillHereLogo: React.FC<StillHereLogoProps> = ({
@@ -13,8 +14,10 @@ export const StillHereLogo: React.FC<StillHereLogoProps> = ({
   size = "md",
   showTagline = true,
   className = "",
-  theme = "light",
+  theme = "auto",
 }) => {
+  const { isDark } = useTheme();
+  const effectiveDark = theme === "auto" ? isDark : theme === "dark";
   // Dimensions based on size
   const iconSize = {
     sm: 24,
@@ -37,8 +40,8 @@ export const StillHereLogo: React.FC<StillHereLogoProps> = ({
     xl: "text-base",
   }[size];
 
-  const frameColor = theme === "dark" ? "#FAF6F0" : "#231C18";
-  const frameSecondary = theme === "dark" ? "#D48B74" : "#C25E42";
+  const frameColor = effectiveDark ? "#FAF6F0" : "#231C18";
+  const frameSecondary = effectiveDark ? "#E07A5F" : "#C25E42";
   const starGlow = "#E07A5F";
 
   const LogoIcon = (
@@ -77,7 +80,7 @@ export const StillHereLogo: React.FC<StillHereLogoProps> = ({
         rx="7"
         stroke={frameColor}
         strokeWidth="3.5"
-        fill={theme === "dark" ? "#2B221D" : "#FAF6F0"}
+        fill={effectiveDark ? "#2B221D" : "#FAF6F0"}
       />
 
       {/* Inner photograph matte border */}
@@ -120,15 +123,15 @@ export const StillHereLogo: React.FC<StillHereLogoProps> = ({
       <div className="flex flex-col">
         <span
           className={`font-serif font-semibold uppercase leading-none ${
-            theme === "dark" ? "text-parchment-100" : "text-espresso-900"
+            effectiveDark ? "text-parchment-100" : "text-espresso-900"
           } ${wordmarkSize}`}
         >
           STILL HERE
         </span>
         {showTagline && variant === "full" && (
           <span
-            className={`font-sans font-light italic leading-tight text-espresso-600/80 mt-0.5 ${
-              theme === "dark" ? "text-parchment-400" : "text-espresso-600"
+            className={`font-sans font-light italic leading-tight mt-0.5 ${
+              effectiveDark ? "text-parchment-400" : "text-espresso-600/80"
             } ${taglineSize}`}
           >
             Keep the moments that keep you close.

@@ -66,10 +66,10 @@ export const Modal: React.FC<ModalProps> = ({
       {/* Modal Card Surface */}
       <div
         ref={modalRef}
-        className={`relative w-full ${maxWidthClasses} bg-[#FAF7F2] rounded-3xl border border-parchment-300 shadow-album p-5 sm:p-8 z-10 my-auto text-left transition-all duration-200 transform scale-100 max-h-[92vh] flex flex-col`}
+        className={`relative w-full ${maxWidthClasses} bg-parchment-50 dark:bg-[#241D19] rounded-3xl border border-parchment-300 dark:border-[#382C25] shadow-album p-5 sm:p-8 z-10 my-auto text-left transition-all duration-200 transform scale-100 max-h-[92vh] flex flex-col`}
       >
         {/* Header */}
-        <div className="flex items-start justify-between gap-4 pb-4 border-b border-parchment-300">
+        <div className="flex items-start justify-between gap-4 pb-4 border-b border-parchment-300 dark:border-[#382C25]">
           <div>
             {title && (
               <h3

@@ -8,6 +8,8 @@ import {
   CheckCircle2,
   AlertTriangle,
   Server,
+  Sun,
+  Moon,
 } from "lucide-react";
 import type { Memory } from "../types";
 import {
@@ -16,6 +18,7 @@ import {
   resetDemoArchive,
 } from "../services/stillHereApi";
 import { ConfirmDialog } from "../components/common/ConfirmDialog";
+import { useTheme } from "../context/ThemeContext";
 
 interface SettingsPrivacyViewProps {
   memories: Memory[];
@@ -30,6 +33,7 @@ export const SettingsPrivacyView: React.FC<SettingsPrivacyViewProps> = ({
   onClearAllConversations,
   onShowToast,
 }) => {
+  const { theme, setTheme } = useTheme();
   const [demoActive, setDemoActive] = useState<boolean>(isDemoModeActive());
   const [showClearConvoDialog, setShowClearConvoDialog] = useState(false);
   const [showPurgeMemoriesDialog, setShowPurgeMemoriesDialog] = useState(false);
@@ -91,6 +95,75 @@ export const SettingsPrivacyView: React.FC<SettingsPrivacyViewProps> = ({
           Your memories and voice recordings are deeply personal. Review privacy policies, manage storage, and configure archive options.
         </p>
       </div>
+
+      {/* Appearance & Theme Preferences */}
+      <section className="p-6 sm:p-8 rounded-3xl bg-white border border-[#E6DDD2] shadow-warm-xs space-y-4">
+        <div className="flex items-center gap-3 text-espresso-900">
+          <div className="w-10 h-10 rounded-2xl bg-terracotta-light text-terracotta flex items-center justify-center shrink-0">
+            {theme === "dark" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+          </div>
+          <div>
+            <h2 className="font-serif text-2xl font-medium text-espresso-900">
+              Appearance & Theme
+            </h2>
+            <p className="text-xs text-espresso-500 font-sans">
+              Choose your reading and remembrance environment
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          <button
+            type="button"
+            onClick={() => setTheme("light")}
+            className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+              theme === "light"
+                ? "bg-parchment-100 border-terracotta ring-2 ring-terracotta/20 shadow-sm"
+                : "bg-parchment-50 border-parchment-200 hover:border-parchment-300"
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-serif font-medium text-espresso-900 flex items-center gap-2">
+                <Sun className="w-4 h-4 text-terracotta" />
+                <span>Light Mode</span>
+              </span>
+              {theme === "light" && (
+                <span className="text-[10px] font-mono text-terracotta font-semibold uppercase tracking-wider">
+                  Active
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-espresso-600 font-sans mt-2 leading-relaxed">
+              Warm ivory and aged parchment backgrounds with espresso-brown typography and gentle terracotta accents.
+            </p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setTheme("dark")}
+            className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+              theme === "dark"
+                ? "bg-[#2F2620] border-terracotta ring-2 ring-terracotta/20 shadow-sm"
+                : "bg-[#241D19] border-[#382C25] hover:border-[#4A3B32]"
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-serif font-medium text-parchment-100 flex items-center gap-2">
+                <Moon className="w-4 h-4 text-terracotta-light" />
+                <span>Dark Mode</span>
+              </span>
+              {theme === "dark" && (
+                <span className="text-[10px] font-mono text-terracotta-light font-semibold uppercase tracking-wider">
+                  Active
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-parchment-300 font-sans mt-2 leading-relaxed">
+              Deep espresso, warm charcoal, and soft ivory text with muted terracotta highlights. Cinematic and comfortable for the eyes.
+            </p>
+          </button>
+        </div>
+      </section>
 
       {/* Sensitive Personal Data Notice */}
       <section className="p-6 sm:p-8 rounded-3xl bg-white border border-[#E6DDD2] shadow-warm-xs space-y-4">
