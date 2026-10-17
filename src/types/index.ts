@@ -118,15 +118,76 @@ export type ElevenLabsVoice = {
   labels?: Record<string, string>;
 };
 
+export type AuthUser = {
+  id: string;
+  email: string;
+  name: string;
+  avatarUrl?: string;
+  createdAt: string;
+  isDemo?: boolean;
+};
+
+export type AudioUploadSlot = {
+  id: string;
+  slotNumber: number;
+  label: string; // e.g. "Recording 1 — A familiar conversation"
+  promptSubtitle: string;
+  file?: File;
+  fileName?: string;
+  fileSize?: number;
+  audioUrl?: string;
+  durationSeconds?: number;
+  uploadedAt?: string;
+  status: "empty" | "uploading" | "ready" | "failed";
+  errorMessage?: string;
+  transcript?: string;
+};
+
+export type AudioAnalysisState =
+  | "no_recordings"
+  | "uploading"
+  | "checking_quality"
+  | "analyzing"
+  | "awaiting_verification"
+  | "voice_available"
+  | "voice_unavailable"
+  | "completed"
+  | "failed";
+
+export type AudioAnalysisResult = {
+  state: AudioAnalysisState;
+  recordingCount: number;
+  totalDurationSeconds: number;
+  averageQualityScore: number; // 0 - 100
+  backgroundNoiseLevel: "low" | "moderate" | "high";
+  multipleSpeakersDetected: boolean;
+  clippingDetected: boolean;
+  detectedLanguage: string;
+  transcriptAvailable: boolean;
+  meetsCloningRequirements: boolean;
+  summaryFeedback: string;
+  voiceConfigurationStatus: "not_configured" | "ready" | "unavailable" | "processing";
+  configuredVoiceId?: string;
+  configuredVoiceName?: string;
+  recommendedNarrator?: {
+    voiceId: string;
+    name: string;
+  };
+};
+
 export type AppView =
+  | "auth"
   | "welcome"
   | "home"
+  | "dashboard"
   | "memories"
   | "gallery"
   | "flashbacks"
   | "feel_existence"
+  | "voice_archive"
   | "conversation"
   | "timeline"
   | "settings"
   | "detail"
   | "flashback_player";
+

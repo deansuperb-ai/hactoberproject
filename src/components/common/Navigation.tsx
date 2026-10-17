@@ -9,8 +9,12 @@ import {
   Menu,
   X,
   User,
+  LogOut,
+  Mic,
+  ChevronDown,
 } from "lucide-react";
-import type { AppView, PersonProfile } from "../../types";
+import type { AppView, PersonProfile, AuthUser } from "../../types";
+import { StillHereLogo } from "./StillHereLogo";
 
 interface NavigationProps {
   currentView: AppView;
@@ -18,6 +22,8 @@ interface NavigationProps {
   onOpenAddMemory: () => void;
   activeProfile: PersonProfile;
   onCreateProfile: () => void;
+  currentUser?: AuthUser | null;
+  onSignOut?: () => void;
 }
 
 export const Navigation: React.FC<NavigationProps> = ({
@@ -26,15 +32,19 @@ export const Navigation: React.FC<NavigationProps> = ({
   onOpenAddMemory,
   activeProfile,
   onCreateProfile,
+  currentUser,
+  onSignOut,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
   const navItems: { view: AppView; label: string; icon: React.FC<{ className?: string }> }[] = [
-    { view: "home", label: "Home", icon: Home },
+    { view: "home", label: "Dashboard", icon: Home },
     { view: "memories", label: "Memories", icon: Grid },
     { view: "flashbacks", label: "Flashbacks", icon: Film },
     { view: "feel_existence", label: "Feel the Existence", icon: Flame },
-    { view: "settings", label: "Privacy & Settings", icon: Settings },
+    { view: "voice_archive", label: "Voice Archive", icon: Mic },
+    { view: "settings", label: "Settings", icon: Settings },
   ];
 
   const handleNavClick = (view: AppView) => {
@@ -46,27 +56,16 @@ export const Navigation: React.FC<NavigationProps> = ({
     <header className="sticky top-0 z-40 bg-[#FBF9F5]/90 backdrop-blur-md border-b border-parchment-200 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
+          
           {/* Logo & Brand Wordmark */}
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => handleNavClick("home")}
-              className="flex items-center gap-3 group text-left cursor-pointer focus:outline-none"
+              className="flex items-center text-left cursor-pointer focus:outline-none"
               aria-label="STILL HERE — Home"
             >
-              <div className="w-10 h-10 rounded-2xl bg-espresso-950 flex items-center justify-center text-parchment-100 shadow-sm group-hover:scale-105 transition-transform">
-                <span className="font-serif font-semibold text-lg tracking-wider text-parchment-100">
-                  SH
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-serif text-xl sm:text-2xl font-semibold tracking-wider text-espresso-950 group-hover:text-terracotta transition-colors">
-                  STILL HERE
-                </span>
-                <span className="text-[10px] font-mono tracking-widest text-espresso-500 uppercase">
-                  Personal Memory Sanctuary
-                </span>
-              </div>
+              <StillHereLogo variant="full" size="md" showTagline={false} />
             </button>
 
             {/* Active Profile Pill */}
@@ -78,9 +77,14 @@ export const Navigation: React.FC<NavigationProps> = ({
                   <User className="w-4 h-4 text-espresso-400 m-auto mt-1" />
                 )}
               </div>
-              <span className="text-xs font-serif font-medium text-espresso-800 truncate max-w-[140px]">
-                {activeProfile.name}
-              </span>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-espresso-400 leading-none">
+                  Remembering
+                </span>
+                <span className="text-xs font-serif font-medium text-espresso-900 truncate max-w-[130px] leading-tight">
+                  {activeProfile.name}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -88,7 +92,7 @@ export const Navigation: React.FC<NavigationProps> = ({
           <nav className="hidden lg:flex items-center gap-1.5" aria-label="Main Navigation">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = currentView === item.view;
+              const isActive = currentView === item.view || (item.view === "home" && currentView === "dashboard");
               const isFeelExistence = item.view === "feel_existence";
 
               return (
@@ -113,7 +117,7 @@ export const Navigation: React.FC<NavigationProps> = ({
             })}
           </nav>
 
-          {/* Right Action Buttons */}
+          {/* Right Action Buttons & User Menu */}
           <div className="hidden sm:flex items-center gap-2.5">
             <button
               type="button"
@@ -129,8 +133,63 @@ export const Navigation: React.FC<NavigationProps> = ({
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-terracotta hover:bg-terracotta-dark text-white text-xs font-medium shadow-xs transition-all cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>Add a memory</span>
+              <span>Add Memory</span>
             </button>
+
+            {/* Authenticated User Menu */}
+            {currentUser && (
+              <div className="relative pl-2 border-l border-parchment-300">
+                <button
+                  type="button"
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-parchment-200 text-espresso-800 transition-colors cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-full bg-terracotta-light text-terracotta-dark flex items-center justify-center font-serif font-medium text-xs">
+                    {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : "U"}
+                  </div>
+                  <ChevronDown className="w-3.5 h-3.5 text-espresso-400" />
+                </button>
+
+                {userDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-parchment-50 border border-parchment-300 shadow-xl p-2 z-50 animate-fadeIn space-y-1">
+                    <div className="px-3 py-2 border-b border-parchment-200">
+                      <p className="text-xs font-serif font-medium text-espresso-900 truncate">
+                        {currentUser.name}
+                      </p>
+                      <p className="text-[11px] font-mono text-espresso-400 truncate">
+                        {currentUser.email}
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUserDropdownOpen(false);
+                        onNavigate("settings");
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-espresso-700 hover:bg-parchment-200 transition-colors cursor-pointer text-left"
+                    >
+                      <Settings className="w-3.5 h-3.5 text-espresso-400" />
+                      <span>Account & Privacy</span>
+                    </button>
+
+                    {onSignOut && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUserDropdownOpen(false);
+                          onSignOut();
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-terracotta hover:bg-terracotta-light/30 transition-colors cursor-pointer text-left"
+                      >
+                        <LogOut className="w-3.5 h-3.5" />
+                        <span>Sign Out</span>
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Mobile Hamburger Toggle */}
@@ -176,7 +235,7 @@ export const Navigation: React.FC<NavigationProps> = ({
           <div className="space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = currentView === item.view;
+              const isActive = currentView === item.view || (item.view === "home" && currentView === "dashboard");
               const isFeelExistence = item.view === "feel_existence";
 
               return (
@@ -211,6 +270,19 @@ export const Navigation: React.FC<NavigationProps> = ({
             >
               + Create a Memory Profile
             </button>
+
+            {currentUser && onSignOut && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onSignOut();
+                }}
+                className="w-full py-2.5 rounded-xl text-xs font-medium text-terracotta bg-terracotta-light/30 flex items-center justify-center gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Sign Out ({currentUser.name})</span>
+              </button>
+            )}
           </div>
         </div>
       )}

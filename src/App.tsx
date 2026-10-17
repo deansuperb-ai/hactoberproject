@@ -4,6 +4,8 @@ import type {
   PersonProfile,
   Memory,
   FlashbackExperience,
+  AuthUser,
+  AudioUploadSlot,
 } from "./types";
 import {
   listProfiles,
@@ -17,6 +19,7 @@ import {
   deleteFlashback,
   ELEANOR_DEMO_PROFILE,
 } from "./services/stillHereApi";
+import { getCurrentSession, signOut } from "./services/authService";
 import { useAudioPlayer } from "./hooks/useAudioPlayer";
 
 // Navigation & Common
@@ -25,22 +28,30 @@ import { GlobalAudioBanner } from "./components/common/GlobalAudioBanner";
 import { ToastContainer, type ToastMessage } from "./components/common/Toast";
 
 // Views
+import { AuthPortalView } from "./views/AuthPortalView";
 import { HomeProfileView } from "./views/HomeProfileView";
 import { GalleryView } from "./views/GalleryView";
 import { FlashbacksView } from "./views/FlashbacksView";
 import { FeelTheExistenceView } from "./views/FeelTheExistenceView";
 import { SettingsPrivacyView } from "./views/SettingsPrivacyView";
 
-// Modals
+// Modals & Sub-components
 import { CreateProfileModal } from "./components/profile/CreateProfileModal";
 import { AddMemoryModal } from "./components/memory/AddMemoryModal";
 import { MemoryDetailModal } from "./components/memory/MemoryDetailModal";
 import { CreateFlashbackModal } from "./components/flashback/CreateFlashbackModal";
 import { VerticalCinematicFlashback } from "./components/flashback/VerticalCinematicFlashback";
+import { PreserveVoiceModal } from "./components/voice/PreserveVoiceModal";
+import { OriginalAudioLibrary } from "./components/audio/OriginalAudioLibrary";
 
 export function App() {
+  // Authentication State
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => getCurrentSession());
+
+  // Views & Profile States
   const [currentView, setCurrentView] = useState<AppView>("home");
   const [activeProfile, setActiveProfile] = useState<PersonProfile>(ELEANOR_DEMO_PROFILE);
+  const [allProfiles, setAllProfiles] = useState<PersonProfile[]>([ELEANOR_DEMO_PROFILE]);
   const [memories, setMemories] = useState<Memory[]>([]);
   const [flashbacks, setFlashbacks] = useState<FlashbackExperience[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -49,6 +60,7 @@ export function App() {
   const [isCreateProfileOpen, setIsCreateProfileOpen] = useState(false);
   const [isAddMemoryOpen, setIsAddMemoryOpen] = useState(false);
   const [isCreateFlashbackOpen, setIsCreateFlashbackOpen] = useState(false);
+  const [isVoiceSetupOpen, setIsVoiceSetupOpen] = useState(false);
   const [selectedMemoryDetail, setSelectedMemoryDetail] = useState<Memory | null>(null);
   const [activeVerticalFlashback, setActiveVerticalFlashback] = useState<FlashbackExperience | null>(null);
 
@@ -70,9 +82,12 @@ export function App() {
 
   // Load active profile and associated data
   const loadProfileData = useCallback(async () => {
+    if (!currentUser) return;
     setIsLoading(true);
     try {
       const profiles = await listProfiles();
+      setAllProfiles(profiles);
+
       const activeId = await getActiveProfileId();
       const current = profiles.find((p) => p.id === activeId) || profiles[0] || ELEANOR_DEMO_PROFILE;
       setActiveProfile(current);
@@ -88,15 +103,32 @@ export function App() {
     } finally {
       setIsLoading(false);
     }
-  }, [showToast]);
+  }, [currentUser, showToast]);
 
   useEffect(() => {
-    loadProfileData();
-  }, [loadProfileData]);
+    if (currentUser) {
+      loadProfileData();
+    }
+  }, [currentUser, loadProfileData]);
+
+  // Authentication Handlers
+  const handleAuthenticated = (user: AuthUser) => {
+    setCurrentUser(user);
+    setCurrentView("home");
+    showToast(`Welcome back, ${user.name}.`, "success");
+  };
+
+  const handleSignOut = () => {
+    audio.stop();
+    signOut();
+    setCurrentUser(null);
+    setCurrentView("auth");
+    showToast("You have been signed out safely.", "info");
+  };
 
   // Switch Profile
   const handleSwitchProfile = async (profile: PersonProfile) => {
-    // Stop audio from previous profile
+    // Stop audio from previous profile to avoid mixing contexts
     audio.pause();
     await setActiveProfileId(profile.id);
     setActiveProfile(profile);
@@ -112,6 +144,7 @@ export function App() {
 
   // Profile Created
   const handleProfileCreated = async (profile: PersonProfile) => {
+    setAllProfiles((prev) => [profile, ...prev]);
     setActiveProfile(profile);
     const profileMemories = await listMemories(profile.id);
     setMemories(profileMemories);
@@ -131,6 +164,27 @@ export function App() {
     }
     const updated = await listMemories(activeProfile.id);
     setMemories(updated);
+  };
+
+  // Save multiple audio upload slots as authentic memories
+  const handleSaveVoiceRecordingsAsMemories = async (recordings: AudioUploadSlot[]) => {
+    for (const rec of recordings) {
+      if (!rec.audioUrl) continue;
+      await uploadMemory(activeProfile.id, {
+        profileId: activeProfile.id,
+        title: rec.fileName || rec.label,
+        description: `Authentic voice note recorded for ${activeProfile.name}. Duration: ${rec.durationSeconds || 0} seconds.`,
+        type: "audio",
+        audioUrl: rec.audioUrl,
+        occurredAt: new Date().toISOString().split("T")[0],
+        transcript: rec.transcript,
+        tags: ["voice", "original recording"],
+        sourceLabel: "Original voice note",
+      });
+    }
+    const updated = await listMemories(activeProfile.id);
+    setMemories(updated);
+    showToast(`Preserved ${recordings.length} authentic recordings in ${activeProfile.name}'s library.`, "success");
   };
 
   // Delete Memory
@@ -156,10 +210,27 @@ export function App() {
     audio.toggle({
       url: memory.audioUrl,
       title: memory.title,
-      sourceLabel: memory.sourceLabel || "Authentic Recording",
+      sourceLabel: memory.sourceLabel || "Original recording",
       kind: "original",
     });
   };
+
+  // Route Guard: If user is not authenticated, render AuthPortalView
+  if (!currentUser) {
+    return (
+      <>
+        <AuthPortalView
+          onAuthenticated={handleAuthenticated}
+          onExploreDemo={() => {
+            handleSwitchProfile(ELEANOR_DEMO_PROFILE);
+            setCurrentView("home");
+            showToast("Exploring Eleanor's demo archive.", "info");
+          }}
+        />
+        <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+      </>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#FBF9F5] text-espresso-950 flex flex-col font-sans selection:bg-terracotta-light selection:text-terracotta-dark">
@@ -170,13 +241,17 @@ export function App() {
         onOpenAddMemory={() => setIsAddMemoryOpen(true)}
         activeProfile={activeProfile}
         onCreateProfile={() => setIsCreateProfileOpen(true)}
+        currentUser={currentUser}
+        onSignOut={handleSignOut}
       />
 
       {/* Main View Display */}
       <main className="flex-1 pb-24">
-        {currentView === "home" && (
+        {(currentView === "home" || currentView === "dashboard") && (
           <HomeProfileView
+            currentUser={currentUser}
             activeProfile={activeProfile}
+            allProfiles={allProfiles}
             memories={memories}
             flashbacks={flashbacks}
             onCreateProfile={() => setIsCreateProfileOpen(true)}
@@ -189,6 +264,8 @@ export function App() {
             onPlayFlashback={(fb) => setActiveVerticalFlashback(fb)}
             onOpenFeelExistence={() => setCurrentView("feel_existence")}
             onOpenMemoryDetail={(mem) => setSelectedMemoryDetail(mem)}
+            onSwitchProfile={handleSwitchProfile}
+            onOpenVoiceSetup={() => setIsVoiceSetupOpen(true)}
           />
         )}
 
@@ -204,6 +281,18 @@ export function App() {
             isPlaying={audio.isPlaying}
             onOpenAddMemory={() => setIsAddMemoryOpen(true)}
           />
+        )}
+
+        {currentView === "voice_archive" && (
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 animate-fadeIn">
+            <OriginalAudioLibrary
+              recordings={memories}
+              onPlayRecording={handlePlayMemoryAudio}
+              activePlayingUrl={audio.currentTrack?.url || null}
+              isPlaying={audio.isPlaying}
+              onOpenVoiceSetup={() => setIsVoiceSetupOpen(true)}
+            />
+          </div>
         )}
 
         {currentView === "flashbacks" && (
@@ -266,6 +355,17 @@ export function App() {
         onSave={handleSaveMemory}
         existingMemories={memories}
         activeProfileId={activeProfile?.id}
+      />
+
+      <PreserveVoiceModal
+        isOpen={isVoiceSetupOpen}
+        onClose={() => setIsVoiceSetupOpen(false)}
+        profile={activeProfile}
+        onVoiceConfigured={(updatedProfile) => {
+          setActiveProfile(updatedProfile);
+          showToast(`Voice configuration updated for ${updatedProfile.name}.`, "success");
+        }}
+        onSaveRecordingsAsMemories={handleSaveVoiceRecordingsAsMemories}
       />
 
       <MemoryDetailModal
