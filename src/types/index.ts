@@ -35,6 +35,11 @@ export type Memory = {
   isFavorite?: boolean;
   visualKind?: VisualSourceKind;
   relatedMemoryId?: string;
+  category?: string;
+  lifeStage?: string;
+  quote?: string;
+  reflection?: string;
+  sfx?: string;
 };
 
 export type FlashbackShot = {

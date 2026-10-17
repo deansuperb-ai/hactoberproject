@@ -129,16 +129,16 @@ export const AuthPortalView: React.FC<AuthPortalViewProps> = ({
             <div className="relative z-10 mt-10 p-5 rounded-2xl bg-espresso-900/80 border border-parchment-700/40 backdrop-blur-sm space-y-3">
               <div className="flex items-center gap-3">
                 <img
-                  src={DEMO_ASSETS.eleanorPortrait}
-                  alt="Eleanor demo portrait"
+                  src="https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80"
+                  alt="Savitri Devi Sharma demo portrait"
                   className="w-12 h-12 rounded-full object-cover border-2 border-terracotta/70 shadow-md"
                 />
                 <div>
                   <h4 className="text-sm font-serif font-medium text-parchment-100">
-                    Eleanor — Demo Profile
+                    Savitri Devi Sharma — Demo Archive
                   </h4>
                   <p className="text-xs text-parchment-400 font-sans">
-                    Sunday mornings, warm tea & rain outside
+                    60 Preserved Memories • Jaipur, Rajasthan
                   </p>
                 </div>
               </div>
@@ -312,7 +312,7 @@ export const AuthPortalView: React.FC<AuthPortalViewProps> = ({
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium text-terracotta bg-terracotta-light/40 hover:bg-terracotta-light/70 transition-colors cursor-pointer"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>Explore Eleanor's Demo Profile</span>
+                  <span>Explore Demo Archive (60+ Memories)</span>
                 </button>
               </div>
 

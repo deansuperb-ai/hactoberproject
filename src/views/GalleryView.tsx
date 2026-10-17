@@ -39,6 +39,16 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<"all" | MemoryType>("all");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+
+  // Extract all unique categories
+  const allCategories = useMemo(() => {
+    const set = new Set<string>();
+    memories.forEach((m) => {
+      if (m.category) set.add(m.category);
+    });
+    return Array.from(set);
+  }, [memories]);
 
   // Extract all unique tags
   const allTags = useMemo(() => {
@@ -52,6 +62,11 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
     const query = searchQuery.trim().toLowerCase();
 
     return memories.filter((m) => {
+      // Category filter
+      if (selectedCategory !== "all" && m.category !== selectedCategory) {
+        return false;
+      }
+
       // Type filter
       if (selectedType !== "all" && m.type !== selectedType) {
         return false;
@@ -68,14 +83,15 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
         const descMatch = m.description.toLowerCase().includes(query);
         const tagMatch = m.tags?.some((t: string) => t.toLowerCase().includes(query));
         const transcriptMatch = m.transcript?.toLowerCase().includes(query);
-        if (!titleMatch && !descMatch && !tagMatch && !transcriptMatch) {
+        const catMatch = m.category?.toLowerCase().includes(query);
+        if (!titleMatch && !descMatch && !tagMatch && !transcriptMatch && !catMatch) {
           return false;
         }
       }
 
       return true;
     });
-  }, [memories, searchQuery, selectedType, selectedTag]);
+  }, [memories, searchQuery, selectedType, selectedTag, selectedCategory]);
 
   return (
     <div className="space-y-8 py-4 sm:py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -157,6 +173,44 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
             })}
           </div>
         </div>
+
+        {/* Category Filter Tabs */}
+        {allCategories.length > 0 && (
+          <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-parchment-200/80 border border-parchment-300 overflow-x-auto scrollbar-none">
+            <button
+              type="button"
+              onClick={() => setSelectedCategory("all")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                selectedCategory === "all"
+                  ? "bg-espresso-950 text-parchment-50 shadow-warm-xs"
+                  : "text-espresso-700 hover:text-espresso-950"
+              }`}
+            >
+              <span>All Categories ({memories.length})</span>
+            </button>
+            {allCategories.map((cat) => {
+              const count = memories.filter((m) => m.category === cat).length;
+              const isSelected = selectedCategory === cat;
+              return (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setSelectedCategory(isSelected ? "all" : cat)}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
+                    isSelected
+                      ? "bg-terracotta text-white shadow-warm-xs font-semibold"
+                      : "text-espresso-700 hover:bg-parchment-300/60"
+                  }`}
+                >
+                  <span>{cat}</span>
+                  <span className={`text-[10px] ${isSelected ? "text-white/80" : "text-espresso-400"}`}>
+                    ({count})
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* Tag Pills Filter */}
         {allTags.length > 0 && (

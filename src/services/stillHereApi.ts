@@ -7,6 +7,13 @@ import type {
   ConversationSession,
 } from "../types";
 import { DEMO_ASSETS } from "../assets/demoAssets";
+import {
+  SAVITRI_PROFILE,
+  SAVITRI_MEMORIES,
+  SAVITRI_FLASHBACK,
+} from "../data/savitriData";
+
+export { SAVITRI_PROFILE, SAVITRI_MEMORIES, SAVITRI_FLASHBACK };
 
 export const STORAGE_KEYS = {
   PROFILES: "still_here_profiles_v2",
@@ -157,17 +164,22 @@ function getStoredProfiles(): PersonProfile[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.PROFILES);
     if (!raw) {
-      const initial = [ELEANOR_DEMO_PROFILE];
+      const initial = [SAVITRI_PROFILE, ELEANOR_DEMO_PROFILE];
       localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(initial));
       return initial;
     }
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed) || parsed.length === 0) {
-      return [ELEANOR_DEMO_PROFILE];
+      return [SAVITRI_PROFILE, ELEANOR_DEMO_PROFILE];
+    }
+    if (!parsed.some((p: PersonProfile) => p.id === SAVITRI_PROFILE.id)) {
+      const merged = [SAVITRI_PROFILE, ...parsed];
+      localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(merged));
+      return merged;
     }
     return parsed;
   } catch {
-    return [ELEANOR_DEMO_PROFILE];
+    return [SAVITRI_PROFILE, ELEANOR_DEMO_PROFILE];
   }
 }
 
@@ -179,13 +191,29 @@ function getStoredMemories(): Memory[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.MEMORIES);
     if (!raw) {
-      localStorage.setItem(STORAGE_KEYS.MEMORIES, JSON.stringify(ELEANOR_DEMO_MEMORIES));
-      return ELEANOR_DEMO_MEMORIES;
+      const initial = [...SAVITRI_MEMORIES, ...ELEANOR_DEMO_MEMORIES];
+      localStorage.setItem(STORAGE_KEYS.MEMORIES, JSON.stringify(initial));
+      return initial;
     }
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : ELEANOR_DEMO_MEMORIES;
+    if (!Array.isArray(parsed) || parsed.length < 10) {
+      const combined = [
+        ...SAVITRI_MEMORIES,
+        ...(Array.isArray(parsed)
+          ? parsed.filter((m: Memory) => m.profileId !== SAVITRI_PROFILE.id)
+          : ELEANOR_DEMO_MEMORIES),
+      ];
+      localStorage.setItem(STORAGE_KEYS.MEMORIES, JSON.stringify(combined));
+      return combined;
+    }
+    if (!parsed.some((m: Memory) => m.profileId === SAVITRI_PROFILE.id)) {
+      const combined = [...SAVITRI_MEMORIES, ...parsed];
+      localStorage.setItem(STORAGE_KEYS.MEMORIES, JSON.stringify(combined));
+      return combined;
+    }
+    return parsed;
   } catch {
-    return ELEANOR_DEMO_MEMORIES;
+    return [...SAVITRI_MEMORIES, ...ELEANOR_DEMO_MEMORIES];
   }
 }
 
@@ -197,14 +225,22 @@ function getStoredFlashbacks(): FlashbackExperience[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.FLASHBACKS);
     if (!raw) {
-      const initial = [ELEANOR_DEMO_FLASHBACK];
+      const initial = [SAVITRI_FLASHBACK, ELEANOR_DEMO_FLASHBACK];
       localStorage.setItem(STORAGE_KEYS.FLASHBACKS, JSON.stringify(initial));
       return initial;
     }
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [ELEANOR_DEMO_FLASHBACK];
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      return [SAVITRI_FLASHBACK, ELEANOR_DEMO_FLASHBACK];
+    }
+    if (!parsed.some((f: FlashbackExperience) => f.id === SAVITRI_FLASHBACK.id)) {
+      const merged = [SAVITRI_FLASHBACK, ...parsed];
+      localStorage.setItem(STORAGE_KEYS.FLASHBACKS, JSON.stringify(merged));
+      return merged;
+    }
+    return parsed;
   } catch {
-    return [ELEANOR_DEMO_FLASHBACK];
+    return [SAVITRI_FLASHBACK, ELEANOR_DEMO_FLASHBACK];
   }
 }
 
@@ -226,7 +262,7 @@ export async function getActiveProfileId(): Promise<string> {
   if (stored && profiles.some((p) => p.id === stored)) {
     return stored;
   }
-  return profiles[0]?.id || ELEANOR_DEMO_PROFILE.id;
+  return profiles[0]?.id || SAVITRI_PROFILE.id;
 }
 
 export async function setActiveProfileId(id: string): Promise<void> {
@@ -402,18 +438,26 @@ export async function deleteFlashback(id: string): Promise<boolean> {
 
 export async function sendMessage(input: ChatRequest): Promise<ChatResponse> {
   const trimmed = input.message.trim().toLowerCase();
-  const profileId = input.profileId || ELEANOR_DEMO_PROFILE.id;
+  const profileId = input.profileId || SAVITRI_PROFILE.id;
   const memories = await listMemories(profileId);
   const profiles = await listProfiles();
-  const profile = profiles.find((p) => p.id === profileId) || ELEANOR_DEMO_PROFILE;
+  const profile = profiles.find((p) => p.id === profileId) || SAVITRI_PROFILE;
 
-  // Find supporting memories
+  // Find supporting memories by checking title, description, tags, quote, category, location
   let matchedMemories = memories.filter((m) => {
+    const title = m.title.toLowerCase();
+    const desc = m.description.toLowerCase();
+    const quote = (m.quote || m.transcript || "").toLowerCase();
+    const cat = (m.category || "").toLowerCase();
+    const loc = (m.location || "").toLowerCase();
     return (
-      trimmed.includes(m.title.toLowerCase()) ||
-      (m.description && m.description.toLowerCase().split(" ").some((w) => w.length > 4 && trimmed.includes(w))) ||
-      (m.location && trimmed.includes(m.location.toLowerCase())) ||
-      m.tags.some((t) => trimmed.includes(t.toLowerCase()))
+      trimmed.includes(title) ||
+      title.includes(trimmed) ||
+      (m.tags && m.tags.some((t) => trimmed.includes(t.toLowerCase()))) ||
+      (trimmed.length > 3 && desc.includes(trimmed)) ||
+      (trimmed.length > 3 && quote.includes(trimmed)) ||
+      (cat && trimmed.includes(cat)) ||
+      (loc && trimmed.includes(loc))
     );
   });
 
@@ -423,17 +467,32 @@ export async function sendMessage(input: ChatRequest): Promise<ChatResponse> {
 
   const primaryMemory = matchedMemories[0];
 
-  let exactQuote: string | null = null;
-  if (primaryMemory?.transcript) {
-    exactQuote = primaryMemory.transcript;
-  }
+  const exactQuote: string | null =
+    primaryMemory?.quote || primaryMemory?.transcript || null;
 
   let reflection = "";
-  if (trimmed.includes("favorite") || trimmed.includes("best") || trimmed.includes("special")) {
+  if (primaryMemory?.reflection) {
+    reflection = primaryMemory.reflection;
+  } else if (
+    trimmed.includes("favorite") ||
+    trimmed.includes("best") ||
+    trimmed.includes("special")
+  ) {
     reflection = `From the memories saved in ${profile.name}'s archive, there is a deep sense of stillness in moments like "${primaryMemory?.title || "our days together"}". It reflects someone who found meaning in gentle routines—warm mugs, quiet windows, and listening closely to the day as it unfolded.`;
-  } else if (trimmed.includes("rain") || trimmed.includes("weather") || trimmed.includes("morning")) {
-    reflection = `Your archive mentions rainy mornings and the smell of bread and tea. In these moments, ${profile.name} cherished the unhurried quiet, reminding you that there is no need to rush when rain taps against the glass.`;
-  } else if (trimmed.includes("recipe") || trimmed.includes("kitchen") || trimmed.includes("cook")) {
+  } else if (
+    trimmed.includes("rain") ||
+    trimmed.includes("weather") ||
+    trimmed.includes("morning") ||
+    trimmed.includes("monsoon")
+  ) {
+    reflection = `Your archive mentions the fragrance of wet sandstone after rain and morning tea. In these moments, ${profile.name} cherished the unhurried quiet, reminding you that there is no need to rush when rain taps against the courtyard stones.`;
+  } else if (
+    trimmed.includes("recipe") ||
+    trimmed.includes("kitchen") ||
+    trimmed.includes("cook") ||
+    trimmed.includes("roti") ||
+    trimmed.includes("bread")
+  ) {
     reflection = `In the kitchen memories for ${profile.name}, patience was the true ingredient. The saved notes show a person who never measured love in strict spoonfuls, but in shared warmth and keeping your heart quiet.`;
   } else {
     reflection = `Looking through the ${memories.length} memories saved for ${profile.name}, moments like "${primaryMemory?.title || "this day"}" show a life anchored in warmth, attentive presence, and words that continue to offer comfort.`;
@@ -476,9 +535,19 @@ export function isDemoModeActive(): boolean {
 export function setDemoModeOverride(_enabled: boolean): void {}
 
 export function resetDemoArchive(): void {
-  localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify([ELEANOR_DEMO_PROFILE]));
-  localStorage.setItem(STORAGE_KEYS.MEMORIES, JSON.stringify(ELEANOR_DEMO_MEMORIES));
-  localStorage.setItem(STORAGE_KEYS.FLASHBACKS, JSON.stringify([ELEANOR_DEMO_FLASHBACK]));
+  localStorage.setItem(
+    STORAGE_KEYS.PROFILES,
+    JSON.stringify([SAVITRI_PROFILE, ELEANOR_DEMO_PROFILE])
+  );
+  localStorage.setItem(
+    STORAGE_KEYS.MEMORIES,
+    JSON.stringify([...SAVITRI_MEMORIES, ...ELEANOR_DEMO_MEMORIES])
+  );
+  localStorage.setItem(
+    STORAGE_KEYS.FLASHBACKS,
+    JSON.stringify([SAVITRI_FLASHBACK, ELEANOR_DEMO_FLASHBACK])
+  );
+  localStorage.setItem(STORAGE_KEYS.ACTIVE_PROFILE_ID, SAVITRI_PROFILE.id);
 }
 
 export async function createMemory(memory: Partial<Memory>): Promise<Memory> {

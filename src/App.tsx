@@ -18,6 +18,7 @@ import {
   listFlashbacks,
   deleteFlashback,
   ELEANOR_DEMO_PROFILE,
+  SAVITRI_PROFILE,
 } from "./services/stillHereApi";
 import { getCurrentSession, signOut } from "./services/authService";
 import { useAudioPlayer } from "./hooks/useAudioPlayer";
@@ -50,8 +51,8 @@ export function App() {
 
   // Views & Profile States
   const [currentView, setCurrentView] = useState<AppView>("home");
-  const [activeProfile, setActiveProfile] = useState<PersonProfile>(ELEANOR_DEMO_PROFILE);
-  const [allProfiles, setAllProfiles] = useState<PersonProfile[]>([ELEANOR_DEMO_PROFILE]);
+  const [activeProfile, setActiveProfile] = useState<PersonProfile>(SAVITRI_PROFILE);
+  const [allProfiles, setAllProfiles] = useState<PersonProfile[]>([SAVITRI_PROFILE, ELEANOR_DEMO_PROFILE]);
   const [memories, setMemories] = useState<Memory[]>([]);
   const [flashbacks, setFlashbacks] = useState<FlashbackExperience[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
